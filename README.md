@@ -1,6 +1,6 @@
 # prelegal
 
-> 🚧 This project is in its early stages. This README is a placeholder and will be expanded as the project develops.
+> 🚧 **Work in progress:** This project is under active development and is expected to be completed within 1 week (target date: **October 16, 2026**). This README will be updated with full details once the project is complete.
 
 ## Overview
 
