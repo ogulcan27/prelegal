@@ -1,0 +1,34 @@
+License for the contents of this directory
+==========================================
+
+All legal agreement templates in this "templates" directory are the work of
+Common Paper, Inc. (https://commonpaper.com) and were copied from the
+Common Paper GitHub organization (https://github.com/CommonPaper).
+
+They are licensed under the Creative Commons Attribution 4.0 International
+License (CC BY 4.0). To view a copy of this license, visit:
+
+    https://creativecommons.org/licenses/by/4.0/
+
+You are free to share and adapt these materials for any purpose, including
+commercially, provided that you give appropriate credit to Common Paper,
+provide a link to the license, and indicate if changes were made.
+
+Source repositories:
+
+    AI-Addendum.md                  https://github.com/CommonPaper/AI-Addendum
+    BAA.md                          https://github.com/CommonPaper/BAA
+    CSA.md                          https://github.com/CommonPaper/CSA
+    Design-Partner-Agreement.md     https://github.com/CommonPaper/Design-Partner-Agreement
+    DPA.md                          https://github.com/CommonPaper/DPA
+    Mutual-NDA.md                   https://github.com/CommonPaper/Mutual-NDA
+    Mutual-NDA-coverpage.md         https://github.com/CommonPaper/Mutual-NDA
+    Partnership-Agreement.md        https://github.com/CommonPaper/Partnership-Agreement
+    Pilot-Agreement.md              https://github.com/CommonPaper/Pilot-Agreement
+    PSA.md                          https://github.com/CommonPaper/PSA
+    SLA.md                          https://github.com/CommonPaper/SLA
+    Software-License-Agreement.md   https://github.com/CommonPaper/Software-License-Agreement
+
+Some files were renamed for consistency (design-partner-agreement.md,
+psa.md and sla.md upstream). File contents are unmodified copies of the
+upstream main branches as of 2026-10-09.
