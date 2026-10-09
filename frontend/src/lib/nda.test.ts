@@ -8,6 +8,7 @@ import {
   pdfFileName,
   signatureRows,
   todayIso,
+  valueOr,
   type NdaData,
 } from "./nda";
 
@@ -78,5 +79,37 @@ describe("pdfFileName", () => {
     ];
     expect(pdfFileName(data({ parties }))).toBe("Mutual-NDA-Acme-Inc-Özer-Şirketi.pdf");
     expect(pdfFileName(defaultNdaData)).toBe("Mutual-NDA.pdf");
+  });
+});
+
+describe("edge cases", () => {
+  it("treats whitespace-only text as empty and trims filled text", () => {
+    expect(valueOr("   ", "Purpose")).toEqual({ text: "[Purpose]", missing: true });
+    expect(valueOr("  Delaware \n", "Governing Law")).toEqual({ text: "Delaware", missing: false });
+  });
+
+  it("shows a placeholder for an invalid date", () => {
+    expect(formatDate("not-a-date")).toEqual({ text: "[Effective Date]", missing: true });
+  });
+
+  it("ignores the year count when the MNDA continues until terminated", () => {
+    expect(mndaTermText(data({ mndaTermType: "continuous", mndaTermYears: 0 })).missing).toBe(false);
+  });
+
+  it("trims party details in the signature table", () => {
+    const parties: NdaData["parties"] = [
+      { ...defaultNdaData.parties[0], name: "  Ada  " },
+      defaultNdaData.parties[1],
+    ];
+    expect(signatureRows(data({ parties }))).toContainEqual({ label: "Print Name", values: ["Ada", ""] });
+  });
+
+  it("builds a clean file name from one company or from punctuation-only names", () => {
+    const withCompanies = (first: string, second: string): NdaData["parties"] => [
+      { ...defaultNdaData.parties[0], company: first },
+      { ...defaultNdaData.parties[1], company: second },
+    ];
+    expect(pdfFileName(data({ parties: withCompanies("", "Globex") }))).toBe("Mutual-NDA-Globex.pdf");
+    expect(pdfFileName(data({ parties: withCompanies("!!!", "---") }))).toBe("Mutual-NDA.pdf");
   });
 });
