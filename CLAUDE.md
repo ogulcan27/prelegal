@@ -60,16 +60,27 @@ Backend available at http://localhost:8000
 - Common Paper templates in templates/ and catalog.json
 - Mutual NDA creator: manual form, live preview, PDF download (Next.js)
 
-### Completed (KAN-4) - V1 foundation
+### Completed (KAN-4) - V1 foundation (merged to main, PR #6)
 - Next.js static export (`frontend/out`) served by FastAPI at localhost:8000
 - Fake login at `/`: any email and password go to the NDA creator at `/nda/`; no authentication yet
 - FastAPI backend (`backend/`, uv project) with stdlib sqlite3
 - SQLite DB deleted and recreated with a `users` table on every start (unused until real auth)
 - Multi-stage Dockerfile (Node frontend build + Python backend)
-- Start/stop scripts for Mac, Linux, Windows in scripts/ (pass `.env` to the container if present)
+- Start/stop scripts for Mac, Linux, Windows in scripts/; Mac scripts delegate to the Linux ones; start passes `.env` to the container if present
 
 ### Not built yet
 - AI chat, real sign up / sign in, document persistence, other document types
 
 ### Current API Endpoints
 - `GET /api/health` - Health check
+
+## Implementation Details
+
+- Backend modules (`backend/src/prelegal_backend/`): `config.py` (paths from `PRELEGAL_DB_PATH`, `PRELEGAL_STATIC_DIR`), `db.py` (`reset_database`), `main.py` (lifespan resets DB, `/api/*` routes, `StaticFiles` mount at `/` registered last)
+- Frontend routes: `src/app/page.tsx` (login, `LoginForm`), `src/app/nda/page.tsx` (NDA builder); `trailingSlash: true`, so link to `/nda/`
+- Static export cannot use `cacheComponents`, PPR or `"use cache"` (build fails); server components run once at build time
+- Close SQLite connections with `contextlib.closing(...)`; `with sqlite3.connect()` does not close, and Windows then locks the file
+- `.env` must be `KEY=value` with no spaces around `=` (Docker `--env-file` rejects spaces)
+- `.gitattributes` keeps `*.sh` files LF so they run on Mac/Linux
+- Tests: `uv run pytest` in `backend/` (conftest points the env vars at temp dirs), `npm test` and `npm run lint` in `frontend/`
+- Deferred from review: run the container as a non-root user and add a Docker `HEALTHCHECK`
