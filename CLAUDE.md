@@ -60,7 +60,7 @@ Backend available at http://localhost:8000
 
 ### Completed (KAN-2, KAN-3)
 - Common Paper templates in templates/ and catalog.json
-- Mutual NDA creator: manual form, live preview, PDF download (Next.js)
+- Mutual NDA creator: manual form (replaced by AI chat in KAN-5), live preview, PDF download (Next.js)
 
 ### Completed (KAN-4) - V1 foundation (merged to main, PR #6)
 - Next.js static export (`frontend/out`) served by FastAPI at localhost:8000
@@ -70,12 +70,12 @@ Backend available at http://localhost:8000
 - Multi-stage Dockerfile (Node frontend build + Python backend)
 - Start/stop scripts for Mac, Linux, Windows in scripts/; Mac scripts delegate to the Linux ones; start passes `.env` to the container if present
 
-### Completed (KAN-5) - AI chat for the Mutual NDA
+### Completed (KAN-5) - AI chat for the Mutual NDA (merged to main, PR #7)
 - Freeform chat replaces the manual form (`NdaForm` deleted); chat on the left, live preview + Download PDF on the right
 - Fixed greeting in the frontend (`GREETING` in `lib/chat.ts`); no LLM call on page load
 - `POST /api/chat`: stateless; the browser sends the whole conversation and the current fields each turn
 - The AI returns `{reply, fields}` with the complete field set (structured output via the `ChatReply` Pydantic model)
-- On a failed request the chat shows an error and puts the user's text back in the input
+- LLM call times out after 60 s; on a failed request the chat shows an error and puts the user's text back in the input
 
 ### Not built yet
 - Real sign up / sign in, document persistence, other document types, chat history across reloads
@@ -86,8 +86,8 @@ Backend available at http://localhost:8000
 
 ## Implementation Details
 
-- Backend modules (`backend/src/prelegal_backend/`): `config.py` (paths from `PRELEGAL_DB_PATH`, `PRELEGAL_STATIC_DIR`), `db.py` (`reset_database`), `main.py` (lifespan resets DB, `/api/*` routes, `StaticFiles` mount at `/` registered last)
-- Frontend routes: `src/app/page.tsx` (login, `LoginForm`), `src/app/nda/page.tsx` (NDA builder); `trailingSlash: true`, so link to `/nda/`
+- Backend modules (`backend/src/prelegal_backend/`): `config.py` (paths from `PRELEGAL_DB_PATH`, `PRELEGAL_STATIC_DIR`; loads `.env`), `db.py` (`reset_database`), `chat.py` (`MODEL`, Pydantic models, AI instructions, `next_turn`), `main.py` (lifespan resets DB, `/api/*` routes, `StaticFiles` mount at `/` registered last)
+- Frontend routes: `src/app/page.tsx` (login, `LoginForm`), `src/app/nda/page.tsx` (`NdaBuilder` = `NdaChat` + `NdaPreview` + `DownloadButton`); `trailingSlash: true`, so link to `/nda/`
 - Static export cannot use `cacheComponents`, PPR or `"use cache"` (build fails); server components run once at build time
 - Close SQLite connections with `contextlib.closing(...)`; `with sqlite3.connect()` does not close, and Windows then locks the file
 - `.env` must be `KEY=value` with no spaces around `=` (Docker `--env-file` rejects spaces)
@@ -96,4 +96,4 @@ Backend available at http://localhost:8000
 - `config.py` loads the repo `.env` for local runs; in Docker the start scripts pass it with `--env-file`
 - The Pydantic `NdaData` in `chat.py` mirrors the TypeScript `NdaData` in `frontend/src/lib/nda.ts`; change both together
 - The frontend calls `/api/chat` with a relative URL, so `npm run dev` alone has no backend; build and run the backend (or Docker) to use the chat
-- Deferred from review: run the container as a non-root user and add a Docker `HEALTHCHECK`
+- Deferred from review: run the container as a non-root user and add a Docker `HEALTHCHECK` (KAN-4); server-side merge if the AI drops field values, and request size/rate limits on `/api/chat` once real auth exists (KAN-5)
