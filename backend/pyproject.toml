@@ -8,6 +8,8 @@ authors = [
 requires-python = ">=3.14"
 dependencies = [
     "fastapi>=0.143.0",
+    "litellm>=1.105.0",
+    "python-dotenv>=1.2.4",
     "uvicorn[standard]>=0.54.0",
 ]
 
@@ -20,3 +22,7 @@ dev = [
     "httpx2>=2.13.1",
     "pytest>=9.1.1",
 ]
+
+[tool.pytest.ini_options]
+addopts = "-m 'not live'"
+markers = ["live: calls the real LLM (run with -m live)"]

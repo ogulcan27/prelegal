@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { defaultNdaData, todayIso, type NdaData } from "@/lib/nda";
 import type { MndaTemplate } from "@/lib/template";
 import { DownloadButton } from "./DownloadButton";
-import { NdaForm } from "./NdaForm";
+import { NdaChat } from "./NdaChat";
 import { NdaPreview } from "./NdaPreview";
 
-/** Form on the left, live document preview on the right. */
+/** AI chat on the left, live document preview on the right. */
 export function NdaBuilder({ template }: { template: MndaTemplate }) {
   const [data, setData] = useState<NdaData>(defaultNdaData);
 
@@ -21,7 +21,7 @@ export function NdaBuilder({ template }: { template: MndaTemplate }) {
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
       <div className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-zinc-200">
-        <NdaForm data={data} onChange={setData} />
+        <NdaChat data={data} onChange={setData} />
       </div>
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-4">

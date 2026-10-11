@@ -8,7 +8,7 @@ The available documents are covered in the catalog.json file in the project root
 
 @catalog.json
 
-The current implementation is the V1 foundation: a fake login and the manual Mutual NDA creator, served by FastAPI in Docker. AI chat, real authentication and the other document types are not built yet.
+The current implementation: a fake login and an AI chat that fills in the Mutual NDA, served by FastAPI in Docker. Real authentication and the other document types are not built yet.
 
 ## Development process
 
@@ -20,7 +20,9 @@ When instructed to build a feature:
 
 ## AI design
 
-When writing code to make calls to LLMs, use your Cerebras skill to use LiteLLM via OpenRouter to the `nvidia/nemotron-3-ultra-550b-a55b:free` model with Cerebras as the inference provider. You should use Structured Outputs so that you can interpret the results and populate fields in the legal document.
+When writing code to make calls to LLMs, use LiteLLM via OpenRouter to the `nvidia/nemotron-3-super-120b-a12b:free` model (model constant in `backend/src/prelegal_backend/chat.py`). Use Structured Outputs so that you can interpret the results and populate fields in the legal document.
+
+Why not the original choice (verified 2026-10-12): Cerebras does not serve `nemotron-3-ultra-550b-a55b`, and its free variant is served only by NVIDIA without structured-output support. Nemotron Super free supports structured outputs. The `.claude/skills/cerebras/SKILL.md` file is empty.
 
 There is an OPENROUTER_API_KEY in the .env file in the project root.
 
@@ -68,11 +70,19 @@ Backend available at http://localhost:8000
 - Multi-stage Dockerfile (Node frontend build + Python backend)
 - Start/stop scripts for Mac, Linux, Windows in scripts/; Mac scripts delegate to the Linux ones; start passes `.env` to the container if present
 
+### Completed (KAN-5) - AI chat for the Mutual NDA
+- Freeform chat replaces the manual form (`NdaForm` deleted); chat on the left, live preview + Download PDF on the right
+- Fixed greeting in the frontend (`GREETING` in `lib/chat.ts`); no LLM call on page load
+- `POST /api/chat`: stateless; the browser sends the whole conversation and the current fields each turn
+- The AI returns `{reply, fields}` with the complete field set (structured output via the `ChatReply` Pydantic model)
+- On a failed request the chat shows an error and puts the user's text back in the input
+
 ### Not built yet
-- AI chat, real sign up / sign in, document persistence, other document types
+- Real sign up / sign in, document persistence, other document types, chat history across reloads
 
 ### Current API Endpoints
 - `GET /api/health` - Health check
+- `POST /api/chat` - Body `{messages, fields}`; returns `{reply, fields}`
 
 ## Implementation Details
 
@@ -82,5 +92,8 @@ Backend available at http://localhost:8000
 - Close SQLite connections with `contextlib.closing(...)`; `with sqlite3.connect()` does not close, and Windows then locks the file
 - `.env` must be `KEY=value` with no spaces around `=` (Docker `--env-file` rejects spaces)
 - `.gitattributes` keeps `*.sh` files LF so they run on Mac/Linux
-- Tests: `uv run pytest` in `backend/` (conftest points the env vars at temp dirs), `npm test` and `npm run lint` in `frontend/`
+- Tests: `uv run pytest` in `backend/` (conftest points the env vars at temp dirs; LLM faked in `test_chat.py`), `uv run pytest -m live` for the real-LLM test, `npm test` and `npm run lint` in `frontend/`
+- `config.py` loads the repo `.env` for local runs; in Docker the start scripts pass it with `--env-file`
+- The Pydantic `NdaData` in `chat.py` mirrors the TypeScript `NdaData` in `frontend/src/lib/nda.ts`; change both together
+- The frontend calls `/api/chat` with a relative URL, so `npm run dev` alone has no backend; build and run the backend (or Docker) to use the chat
 - Deferred from review: run the container as a non-root user and add a Docker `HEALTHCHECK`

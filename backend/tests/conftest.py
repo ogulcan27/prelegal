@@ -29,3 +29,21 @@ def client(static_dir, db_path):
 
     with TestClient(app) as client:
         yield client
+
+
+@pytest.fixture
+def nda_fields():
+    """Default Mutual NDA fields as the frontend sends them before any chat."""
+    party = {"name": "", "title": "", "company": "", "noticeAddress": ""}
+    return {
+        "purpose": "Evaluating a partnership.",
+        "effectiveDate": "",
+        "mndaTermType": "expires",
+        "mndaTermYears": 1,
+        "confidentialityType": "years",
+        "confidentialityYears": 1,
+        "governingLaw": "",
+        "jurisdiction": "",
+        "modifications": "",
+        "parties": [party, party],
+    }

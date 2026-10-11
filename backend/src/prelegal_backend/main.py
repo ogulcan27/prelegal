@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from prelegal_backend import config
+from prelegal_backend.chat import ChatReply, ChatRequest, next_turn
 from prelegal_backend.db import reset_database
 
 
@@ -21,6 +22,11 @@ app = FastAPI(title="prelegal", lifespan=lifespan)
 @app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.post("/api/chat")
+def chat(request: ChatRequest) -> ChatReply:
+    return next_turn(request)
 
 
 app.mount("/", StaticFiles(directory=config.STATIC_DIR, html=True), name="frontend")
