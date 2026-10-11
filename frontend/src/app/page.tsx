@@ -1,19 +1,15 @@
-import { NdaBuilder } from "@/components/NdaBuilder";
-import { loadMndaTemplate } from "@/lib/load-template";
+import { LoginForm } from "@/components/LoginForm";
 
-export default async function Home() {
-  const template = await loadMndaTemplate();
-
+export default function Login() {
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
-      <header className="mb-8 space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Mutual NDA Creator</h1>
-        <p className="max-w-2xl text-sm text-zinc-600">
-          Fill in the details below to complete a Common Paper Mutual Non-Disclosure Agreement. The preview updates as
-          you type, and you can download the finished agreement as a PDF.
-        </p>
-      </header>
-      <NdaBuilder template={template} />
+    <main className="flex flex-1 items-center justify-center px-4 py-10">
+      <div className="w-full max-w-sm space-y-6 rounded-lg bg-white p-8 shadow-sm ring-1 ring-zinc-200">
+        <header className="space-y-1 text-center">
+          <h1 className="text-2xl font-bold tracking-tight text-[#032147]">prelegal</h1>
+          <p className="text-sm text-[#888888]">Sign in to draft your legal agreements</p>
+        </header>
+        <LoginForm />
+      </div>
     </main>
   );
 }
