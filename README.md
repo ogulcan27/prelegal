@@ -4,7 +4,7 @@
 
 ## Overview
 
-prelegal lets users draft legal agreements from the [Common Paper](https://github.com/CommonPaper) templates in `templates/` (listed in `catalog.json`). The current build has a placeholder login (any email and password let you in) followed by the Mutual NDA creator: you chat with an AI assistant, it fills in the agreement in the live preview, and you download a PDF.
+prelegal lets users draft legal agreements from the [Common Paper](https://github.com/CommonPaper) templates in `templates/` (listed in `catalog.json`). The current build has a placeholder login (any email and password let you in) followed by the document creator: you tell an AI assistant which agreement you need (any template in `catalog.json`), it asks for the details and fills in the live preview, highlighting the part it is asking about, and you download a PDF.
 
 ## Running with Docker
 
@@ -16,7 +16,7 @@ Requires Docker. The app runs at http://localhost:8000.
 | Linux | `scripts/start-linux.sh` | `scripts/stop-linux.sh` |
 | Windows | `scripts/start-windows.ps1` | `scripts/stop-windows.ps1` |
 
-Start builds the image and runs a fresh container, passing `.env` (format `KEY=value`, no spaces around `=`) if it exists. The AI chat needs `OPENROUTER_API_KEY` in `.env`. The SQLite database is recreated on every start.
+Start builds the image and runs a fresh container, passing `.env` (format `KEY=value`, no spaces around `=`) if it exists. The AI chat needs `OPENROUTER_API_KEY` in `.env` (free models: 50 requests per day). The SQLite database is recreated on every start.
 
 ## Development
 

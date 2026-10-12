@@ -6,14 +6,14 @@ import {
   SIGNING_STATEMENT,
   STANDARD_TERMS_TITLE,
   type NdaData,
-  type Value,
 } from "@/lib/nda";
 import { refValue, type MndaTemplate, type Segment } from "@/lib/template";
+import { Filled, focusClass, SignatureTable } from "./preview-parts";
 
-type Props = { template: MndaTemplate; data: NdaData };
+type Props = { template: MndaTemplate; data: NdaData; focus?: string[] };
 
 /** HTML rendering of the completed Mutual NDA: cover page followed by the Standard Terms. */
-export function NdaPreview({ template, data }: Props) {
+export function NdaPreview({ template, data, focus = [] }: Props) {
   return (
     <article className="space-y-6 rounded-lg bg-white p-8 font-serif text-[13px] leading-relaxed text-zinc-900 shadow-md ring-1 ring-zinc-200 sm:p-12">
       <header className="space-y-3">
@@ -27,7 +27,7 @@ export function NdaPreview({ template, data }: Props) {
         <section key={section.heading} className="space-y-1">
           <h3 className="font-bold">{section.heading}</h3>
           {section.lines.map((line, i) => (
-            <p key={i} className="whitespace-pre-line">
+            <p key={i} data-field={line.focus} className={`whitespace-pre-line ${focusClass(focus, line.focus)}`}>
               {line.label && <span>{line.label}: </span>}
               <Filled value={line.value} />
             </p>
@@ -36,30 +36,7 @@ export function NdaPreview({ template, data }: Props) {
       ))}
 
       <p>{SIGNING_STATEMENT}</p>
-      <table className="w-full border-collapse text-left">
-        <thead>
-          <tr>
-            <th className="w-1/4 border border-zinc-300 p-2" />
-            {PARTY_HEADERS.map((header) => (
-              <th key={header} className="border border-zinc-300 p-2 text-center">
-                {header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {signatureRows(data).map((row) => (
-            <tr key={row.label}>
-              <th className="border border-zinc-300 p-2 font-semibold">{row.label}</th>
-              {row.values.map((value, i) => (
-                <td key={i} className={`border border-zinc-300 p-2 text-center ${row.toSign ? "h-12" : "h-9"}`}>
-                  {value}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <SignatureTable headers={PARTY_HEADERS} rows={signatureRows(data)} focus={focus} />
 
       <section className="space-y-3 border-t border-zinc-200 pt-6">
         <h3 className="text-center text-lg font-bold">{STANDARD_TERMS_TITLE}</h3>
@@ -78,10 +55,6 @@ export function NdaPreview({ template, data }: Props) {
       </footer>
     </article>
   );
-}
-
-function Filled({ value }: { value: Value }) {
-  return value.missing ? <mark className="rounded bg-amber-100 px-1 text-amber-900">{value.text}</mark> : value.text;
 }
 
 function Segments({ segments, data }: { segments: Segment[]; data: NdaData }) {

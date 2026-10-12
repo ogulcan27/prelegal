@@ -4,12 +4,18 @@ import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GREETING } from "@/lib/chat";
 import { defaultNdaData } from "@/lib/nda";
-import { NdaChat } from "./NdaChat";
+import { DocumentChat } from "./DocumentChat";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-const updated = { ...defaultNdaData, governingLaw: "Delaware" };
-const onChange = vi.fn();
+const current = { documentType: "mutual-nda", fields: defaultNdaData };
+const reply = {
+  reply: "Which courts?",
+  documentType: "mutual-nda",
+  fields: { ...defaultNdaData, governingLaw: "Delaware" },
+  focus: ["jurisdiction"],
+};
+const onReply = vi.fn();
 const fetchMock = vi.fn();
 let container: HTMLDivElement;
 
@@ -17,14 +23,14 @@ beforeEach(() => {
   vi.stubGlobal("fetch", fetchMock);
   container = document.createElement("div");
   document.body.append(container);
-  act(() => createRoot(container).render(<NdaChat data={defaultNdaData} onChange={onChange} />));
+  act(() => createRoot(container).render(<DocumentChat document={current} onReply={onReply} />));
 });
 
 afterEach(() => {
   container.remove();
   vi.unstubAllGlobals();
   fetchMock.mockReset();
-  onChange.mockReset();
+  onReply.mockReset();
 });
 
 const bubbles = () => [...container.querySelectorAll("li")].map((li) => li.textContent);
@@ -43,27 +49,28 @@ async function sendMessage(text: string, send: (textarea: HTMLTextAreaElement) =
   await act(async () => send(textarea));
 }
 
-describe("NdaChat", () => {
+describe("DocumentChat", () => {
   it("starts with the greeting", () => {
     expect(bubbles()).toEqual([GREETING.content]);
   });
 
-  it("sends the conversation and fields, then shows the reply and updates the document", async () => {
-    fetchMock.mockResolvedValue(new Response(JSON.stringify({ reply: "Which courts?", fields: updated })));
+  it("sends the conversation and current document, then shows the reply and passes it on", async () => {
+    fetchMock.mockResolvedValue(new Response(JSON.stringify(reply)));
     await sendMessage("Delaware law");
 
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("/api/chat");
     expect(JSON.parse(init.body)).toEqual({
       messages: [GREETING, { role: "user", content: "Delaware law" }],
+      documentType: "mutual-nda",
       fields: defaultNdaData,
     });
     expect(bubbles()).toEqual([GREETING.content, "Delaware law", "Which courts?"]);
-    expect(onChange).toHaveBeenCalledWith(updated);
+    expect(onReply).toHaveBeenCalledWith(reply);
   });
 
   it("sends on Enter but not on Shift+Enter", async () => {
-    fetchMock.mockResolvedValue(new Response(JSON.stringify({ reply: "Which courts?", fields: updated })));
+    fetchMock.mockResolvedValue(new Response(JSON.stringify(reply)));
     await sendMessage("Delaware law", (textarea) =>
       textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", shiftKey: true, bubbles: true })),
     );
@@ -83,6 +90,6 @@ describe("NdaChat", () => {
     expect(container.querySelector('[role="alert"]')?.textContent).toMatch(/could not reply/);
     expect(bubbles()).toEqual([GREETING.content]);
     expect(container.querySelector("textarea")!.value).toBe("Delaware law");
-    expect(onChange).not.toHaveBeenCalled();
+    expect(onReply).not.toHaveBeenCalled();
   });
 });

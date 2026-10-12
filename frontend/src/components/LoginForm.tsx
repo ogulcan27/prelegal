@@ -12,7 +12,7 @@ export function LoginForm() {
 
   function signIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    router.push("/nda/");
+    router.push("/documents/");
   }
 
   return (

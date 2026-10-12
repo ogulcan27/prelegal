@@ -20,16 +20,16 @@ def test_serves_login_page_at_root(client):
     assert "login" in response.text
 
 
-def test_serves_nda_page(client):
-    response = client.get("/nda/")
+def test_serves_documents_page(client):
+    response = client.get("/documents/")
     assert response.status_code == 200
-    assert "nda" in response.text
+    assert "documents" in response.text
 
 
-def test_redirects_nda_without_trailing_slash(client):
-    response = client.get("/nda", follow_redirects=False)
+def test_redirects_documents_without_trailing_slash(client):
+    response = client.get("/documents", follow_redirects=False)
     assert response.status_code in (307, 308)
-    assert response.headers["location"].endswith("/nda/")
+    assert response.headers["location"].endswith("/documents/")
 
 
 def test_unknown_path_returns_404_page(client):
