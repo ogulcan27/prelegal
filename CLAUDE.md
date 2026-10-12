@@ -58,6 +58,8 @@ Backend available at http://localhost:8000
 
 ## Implementation Status
 
+Status 2026-10-12: KAN-2 to KAN-6 are merged to `main` and marked Done in Jira; local `main` is in sync with GitHub. No ticket is in progress. Feature branches are kept on purpose (owner's choice).
+
 ### Completed (KAN-2, KAN-3)
 - Common Paper templates in templates/ and catalog.json
 - Mutual NDA creator: manual form (replaced by AI chat in KAN-5), live preview, PDF download (Next.js)
@@ -77,13 +79,14 @@ Backend available at http://localhost:8000
 - The AI returns the reply with the complete field set (structured output via Pydantic models)
 - LLM call times out after 60 s; on a failed request the chat shows an error and puts the user's text back in the input
 
-### Completed (KAN-6) - All supported document types (PR open, branch `feature/KAN-6-all-document-types`)
+### Completed (KAN-6) - All supported document types (merged to main, PR #8)
 - `documents.json` (repo root) is the catalog used by backend and frontend: id, name, description, template, two party roles, key terms (key, label, hint). Term labels match the `*_link` spans in the templates
 - Chat flow: no document yet -> `SelectReply` call; once chosen, a per-document reply model (built with `create_model`) fills the fields in the same turn; the AI can switch documents (fields start fresh)
 - Unsupported requests: the AI says it cannot generate them and offers the closest supported document
 - `focus`: the AI names the fields it is asking about (enum of valid keys per document); the preview highlights them in accent yellow and scrolls to the first
 - Mutual NDA keeps its dedicated model, preview and PDF (real Common Paper cover page); the other 10 documents use a generated cover page (Key Terms + parties/signature table) followed by the parsed standard terms
 - Layout: page fills the screen; chat about 40% wide with a 4-line, auto-growing input; preview scrolls on its own
+- Verified by the owner in the browser (layout, yellow highlight and scroll)
 
 ### Not built yet
 - Real sign up / sign in, document persistence, chat history across reloads
