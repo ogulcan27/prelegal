@@ -92,24 +92,25 @@ export function confidentialityText(data: NdaData): Value {
     : missing("Term of Confidentiality");
 }
 
-export type CoverSection = { heading: string; lines: { label?: string; value: Value }[] };
+/** `focus` is the key the AI chat uses when it asks about this line (see backend NDA_FOCUS_KEYS). */
+export type CoverSection = { heading: string; lines: { label?: string; value: Value; focus: string }[] };
 
 export function coverSections(data: NdaData): CoverSection[] {
   return [
-    { heading: "Purpose", lines: [{ value: valueOr(data.purpose, "Purpose") }] },
-    { heading: "Effective Date", lines: [{ value: formatDate(data.effectiveDate) }] },
-    { heading: "MNDA Term", lines: [{ value: mndaTermText(data) }] },
-    { heading: "Term of Confidentiality", lines: [{ value: confidentialityText(data) }] },
+    { heading: "Purpose", lines: [{ value: valueOr(data.purpose, "Purpose"), focus: "purpose" }] },
+    { heading: "Effective Date", lines: [{ value: formatDate(data.effectiveDate), focus: "effectiveDate" }] },
+    { heading: "MNDA Term", lines: [{ value: mndaTermText(data), focus: "mndaTerm" }] },
+    { heading: "Term of Confidentiality", lines: [{ value: confidentialityText(data), focus: "confidentiality" }] },
     {
       heading: "Governing Law & Jurisdiction",
       lines: [
-        { label: "Governing Law", value: valueOr(data.governingLaw, "Governing Law") },
-        { label: "Jurisdiction", value: valueOr(data.jurisdiction, "Jurisdiction") },
+        { label: "Governing Law", value: valueOr(data.governingLaw, "Governing Law"), focus: "governingLaw" },
+        { label: "Jurisdiction", value: valueOr(data.jurisdiction, "Jurisdiction"), focus: "jurisdiction" },
       ],
     },
     {
       heading: "MNDA Modifications",
-      lines: [{ value: filled(data.modifications.trim() || "None.") }],
+      lines: [{ value: filled(data.modifications.trim() || "None."), focus: "modifications" }],
     },
   ];
 }
@@ -123,7 +124,7 @@ export const SIGNING_STATEMENT =
 /** A signature-table row. `toSign` rows (Signature, Date) are left blank for signing by hand. */
 export type SignatureRow = { label: string; values: [string, string]; toSign?: boolean };
 
-export function signatureRows(data: NdaData): SignatureRow[] {
+export function signatureRows(data: { parties: [Party, Party] }): SignatureRow[] {
   const [first, second] = data.parties;
   const row = (label: string, key: keyof Party): SignatureRow => ({
     label,

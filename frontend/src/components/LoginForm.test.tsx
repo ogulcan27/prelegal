@@ -32,9 +32,9 @@ describe("LoginForm", () => {
     expect(password.required).toBe(true);
   });
 
-  it("takes the user to the NDA creator on submit", () => {
+  it("takes the user to the document creator on submit", () => {
     const form = container.querySelector("form")!;
     act(() => form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
-    expect(push).toHaveBeenCalledWith("/nda/");
+    expect(push).toHaveBeenCalledWith("/documents/");
   });
 });

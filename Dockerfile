@@ -2,6 +2,7 @@
 FROM node:24-slim AS frontend
 WORKDIR /app
 COPY templates templates
+COPY documents.json documents.json
 COPY frontend/package.json frontend/package-lock.json frontend/
 RUN cd frontend && npm ci
 COPY frontend frontend
@@ -16,6 +17,7 @@ RUN uv sync --locked --no-dev --no-install-project
 COPY backend ./
 RUN uv sync --locked --no-dev
 COPY --from=frontend /app/frontend/out /app/frontend/out
+COPY documents.json /app/documents.json
 ENV PRELEGAL_STATIC_DIR=/app/frontend/out \
     PRELEGAL_DB_PATH=/app/data/prelegal.db
 EXPOSE 8000

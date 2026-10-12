@@ -1,4 +1,4 @@
-import { Document, Font, Link, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Document, Link, Page, Text, View } from "@react-pdf/renderer";
 import {
   coverSections,
   NDA_TITLE,
@@ -9,38 +9,7 @@ import {
   type NdaData,
 } from "@/lib/nda";
 import { refValue, type MndaTemplate, type Segment } from "@/lib/template";
-
-const FONT_FAMILY = "Noto Serif";
-
-/**
- * Registers the bundled Unicode font (public/fonts). The built-in PDF fonts only cover
- * Latin-1, which would garble names such as "Özer Şirketi". `resolve` maps a font file
- * name to a URL (browser) or file path (Node).
- */
-export function registerPdfFonts(resolve: (file: string) => string) {
-  Font.register({
-    family: FONT_FAMILY,
-    fonts: [
-      { src: resolve("NotoSerif-Regular.ttf") },
-      { src: resolve("NotoSerif-Bold.ttf"), fontWeight: "bold" },
-    ],
-  });
-}
-
-const styles = StyleSheet.create({
-  page: { padding: 56, paddingBottom: 72, fontFamily: FONT_FAMILY, fontSize: 10, lineHeight: 1.45 },
-  title: { fontWeight: "bold", fontSize: 15, textAlign: "center", marginBottom: 12 },
-  heading: { fontWeight: "bold", marginTop: 10, marginBottom: 2 },
-  paragraph: { marginBottom: 6 },
-  bold: { fontWeight: "bold" },
-  link: { color: "#3730a3" },
-  table: { marginTop: 8, borderTopWidth: 1, borderLeftWidth: 1, borderColor: "#a1a1aa" },
-  row: { flexDirection: "row" },
-  cell: { flex: 1, minHeight: 24, padding: 5, borderRightWidth: 1, borderBottomWidth: 1, borderColor: "#a1a1aa", textAlign: "center" },
-  signCell: { minHeight: 40 },
-  labelCell: { flex: 0.8, textAlign: "left", fontWeight: "bold" },
-  footer: { position: "absolute", bottom: 28, left: 56, right: 56, fontSize: 8, color: "#52525b", flexDirection: "row", justifyContent: "space-between" },
-});
+import { PdfSignatureTable, styles } from "./pdf-parts";
 
 type Props = { template: MndaTemplate; data: NdaData };
 
@@ -76,26 +45,7 @@ export function NdaPdf({ template, data }: Props) {
         ))}
 
         <Text style={[styles.paragraph, { marginTop: 12 }]}>{SIGNING_STATEMENT}</Text>
-        <View style={styles.table} wrap={false}>
-          <View style={styles.row}>
-            <Text style={[styles.cell, styles.labelCell]} />
-            {PARTY_HEADERS.map((header) => (
-              <Text key={header} style={[styles.cell, styles.bold]}>
-                {header}
-              </Text>
-            ))}
-          </View>
-          {signatureRows(data).map((row) => (
-            <View key={row.label} style={styles.row}>
-              <Text style={[styles.cell, styles.labelCell, row.toSign ? styles.signCell : {}]}>{row.label}</Text>
-              {row.values.map((value, i) => (
-                <Text key={i} style={[styles.cell, row.toSign ? styles.signCell : {}]}>
-                  {value}
-                </Text>
-              ))}
-            </View>
-          ))}
-        </View>
+        <PdfSignatureTable headers={PARTY_HEADERS} rows={signatureRows(data)} />
         {footer}
       </Page>
 

@@ -59,3 +59,22 @@ describe("NdaPreview", () => {
     expect(cells("Date")).toEqual(["", ""]);
   });
 });
+
+describe("NdaPreview focus", () => {
+  const renderFocused = (focus: string[]) =>
+    new DOMParser().parseFromString(
+      renderToStaticMarkup(<NdaPreview template={template} data={defaultNdaData} focus={focus} />),
+      "text/html",
+    );
+
+  it("highlights the cover page line the AI is asking about", () => {
+    const page = renderFocused(["jurisdiction"]);
+    expect([...page.querySelectorAll(".ring-2")].map((el) => el.getAttribute("data-field"))).toEqual(["jurisdiction"]);
+  });
+
+  it("highlights a party's column in the signature table", () => {
+    const page = renderFocused(["party1"]);
+    expect(page.querySelector('thead [data-field="party1"]')?.className).toContain("ring-2");
+    expect(page.querySelector('thead [data-field="party2"]')?.className).not.toContain("ring-2");
+  });
+});

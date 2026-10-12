@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from prelegal_backend import config
-from prelegal_backend.chat import ChatReply, ChatRequest, next_turn
+from prelegal_backend.chat import ChatRequest, ChatResponse, next_turn
 from prelegal_backend.db import reset_database
 
 
@@ -25,7 +25,7 @@ def health() -> dict[str, str]:
 
 
 @app.post("/api/chat")
-def chat(request: ChatRequest) -> ChatReply:
+def chat(request: ChatRequest) -> ChatResponse:
     return next_turn(request)
 
 

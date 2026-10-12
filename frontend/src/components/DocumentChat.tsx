@@ -1,16 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { GREETING, sendChat, type ChatMessage } from "@/lib/chat";
-import type { NdaData } from "@/lib/nda";
+import { GREETING, sendChat, type ChatMessage, type ChatResponse, type DocumentState } from "@/lib/chat";
 
 type Props = {
-  data: NdaData;
-  onChange: (data: NdaData) => void;
+  document: DocumentState;
+  onReply: (response: ChatResponse) => void;
 };
 
-/** Freeform chat with the AI, which fills in the NDA fields from the conversation. */
-export function NdaChat({ data, onChange }: Props) {
+/** Freeform chat with the AI, which picks the document and fills in its fields from the conversation. */
+export function DocumentChat({ document, onReply }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([GREETING]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -33,9 +32,9 @@ export function NdaChat({ data, onChange }: Props) {
     setBusy(true);
     setError(null);
     try {
-      const { reply, fields } = await sendChat(conversation, data);
-      setMessages([...conversation, { role: "assistant", content: reply }]);
-      onChange(fields);
+      const response = await sendChat(conversation, document);
+      setMessages([...conversation, { role: "assistant", content: response.reply }]);
+      onReply(response);
     } catch (err) {
       console.error(err);
       setMessages(messages);
@@ -47,7 +46,7 @@ export function NdaChat({ data, onChange }: Props) {
   }
 
   return (
-    <div className="flex h-[70vh] flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       <ol ref={listRef} className="flex-1 space-y-3 overflow-y-auto pr-1" aria-live="polite">
         {messages.map((message, index) => (
           <li key={index} className={message.role === "user" ? "flex justify-end" : "flex justify-start"}>
@@ -67,10 +66,10 @@ export function NdaChat({ data, onChange }: Props) {
           {error}
         </p>
       )}
-      <form className="mt-4 flex gap-2" onSubmit={send}>
+      <form className="mt-4 flex flex-col gap-2" onSubmit={send}>
         <textarea
           ref={inputRef}
-          rows={2}
+          rows={4}
           value={input}
           disabled={busy}
           placeholder="Type your answer…"
@@ -82,7 +81,7 @@ export function NdaChat({ data, onChange }: Props) {
               e.currentTarget.form?.requestSubmit();
             }
           }}
-          className="flex-1 resize-none rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm focus:border-[#209dd7] focus:outline-none focus:ring-1 focus:ring-[#209dd7]"
+          className="field-sizing-content max-h-60 min-h-28 w-full resize-none rounded-md border border-zinc-300 bg-white px-3 py-2 text-base text-zinc-900 shadow-sm focus:border-[#209dd7] focus:outline-none focus:ring-1 focus:ring-[#209dd7]"
         />
         <button
           type="submit"

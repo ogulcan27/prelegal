@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { pdfFileName, type NdaData } from "@/lib/nda";
-import type { MndaTemplate } from "@/lib/template";
+import { useState, type ReactElement } from "react";
+import type { DocumentProps } from "@react-pdf/renderer";
 
-type Props = { template: MndaTemplate; data: NdaData };
+/** `renderPdf` builds the react-pdf document; it should import its PDF component lazily. */
+type Props = { fileName: string; renderPdf: () => Promise<ReactElement<DocumentProps>> };
 
 /** Generates the PDF in the browser. The PDF library is loaded on first click to keep the page light. */
-export function DownloadButton({ template, data }: Props) {
+export function DownloadButton({ fileName, renderPdf }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,13 +15,13 @@ export function DownloadButton({ template, data }: Props) {
     setBusy(true);
     setError(null);
     try {
-      const [{ pdf }, { NdaPdf, registerPdfFonts }] = await Promise.all([
+      const [{ pdf }, { registerPdfFonts }, document] = await Promise.all([
         import("@react-pdf/renderer"),
-        import("./NdaPdf"),
+        import("./pdf-parts"),
+        renderPdf(),
       ]);
       registerPdfFonts((file) => new URL(`/fonts/${file}`, window.location.origin).href);
-      const blob = await pdf(<NdaPdf template={template} data={data} />).toBlob();
-      saveFile(blob, pdfFileName(data));
+      saveFile(await pdf(document).toBlob(), fileName);
     } catch (err) {
       console.error(err);
       setError("Could not generate the PDF. Please try again.");

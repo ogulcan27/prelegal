@@ -1,11 +1,12 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { Page, renderToBuffer } from "@react-pdf/renderer";
-import { isValidElement, type ReactElement, type ReactNode } from "react";
+import { renderToBuffer } from "@react-pdf/renderer";
 import { describe, expect, it } from "vitest";
 import { defaultNdaData, type NdaData } from "@/lib/nda";
 import { parseMndaTemplate } from "@/lib/template";
-import { NdaPdf, registerPdfFonts } from "./NdaPdf";
+import { NdaPdf } from "./NdaPdf";
+import { registerPdfFonts } from "./pdf-parts";
+import { inspectPdf as inspect } from "./pdf-inspect";
 
 const root = path.resolve(import.meta.dirname, "../..");
 const templatesDir = path.resolve(root, "../templates");
@@ -24,23 +25,6 @@ const data: NdaData = {
     { name: "Łukasz Nowak", title: "CTO", company: "Globex", noticeAddress: "lukasz@globex.test" },
   ],
 };
-
-/**
- * Walks the react-pdf element tree, expanding our own function components, and collects
- * its text and its Page elements. This checks what the PDF says without decoding the PDF file.
- */
-function inspect(node: ReactNode, found = { text: [] as string[], pages: 0 }) {
-  if (typeof node === "string" || typeof node === "number") found.text.push(String(node));
-  else if (Array.isArray(node)) node.forEach((child) => inspect(child, found));
-  else if (isValidElement(node)) {
-    const element = node as ReactElement<{ children?: ReactNode }>;
-    if (element.type === Page) found.pages++;
-    if (typeof element.type === "function") {
-      inspect((element.type as (props: object) => ReactNode)(element.props), found);
-    } else inspect(element.props.children, found);
-  }
-  return { pages: found.pages, text: found.text.join("") };
-}
 
 describe("NdaPdf", () => {
   it("contains the cover page and the Standard Terms with the user's details", () => {
