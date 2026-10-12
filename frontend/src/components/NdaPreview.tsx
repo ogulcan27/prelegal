@@ -64,7 +64,7 @@ function Segments({ segments, data }: { segments: Segment[]; data: NdaData }) {
         return segment.bold ? <strong key={i}>{segment.text}</strong> : segment.text;
       case "link":
         return (
-          <a key={i} href={segment.href} className="text-indigo-700 underline" target="_blank" rel="noreferrer">
+          <a key={i} href={segment.href} className="text-primary underline" target="_blank" rel="noreferrer">
             {segment.text}
           </a>
         );

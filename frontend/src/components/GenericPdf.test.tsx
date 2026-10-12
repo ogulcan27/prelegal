@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { describe, expect, it } from "vitest";
-import type { DocumentInfo, GenericData } from "@/lib/documents";
+import { DISCLAIMER, type DocumentInfo, type GenericData } from "@/lib/documents";
 import { parseGenericTemplate } from "@/lib/generic-template";
 import { GenericPdf } from "./GenericPdf";
 import { registerPdfFonts } from "./pdf-parts";
@@ -32,6 +32,11 @@ describe("GenericPdf", () => {
     expect(text).toContain("Özer Bulut A.Ş.");
     expect(text).toContain("1. Access and Use.");
     expect(text).toContain("CC BY 4.0");
+  });
+
+  it("puts the draft disclaimer at the foot of every page", () => {
+    const { pages, text } = inspectPdf(<GenericPdf doc={doc} data={data} />);
+    expect(text.split(DISCLAIMER).length - 1).toBe(pages);
   });
 
   it("renders a valid PDF with the Unicode font", async () => {

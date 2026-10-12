@@ -38,7 +38,9 @@ def post(client, **body):
 def test_asks_what_document_is_needed(client, fake_ai):
     fake_ai.answers.append({"reply": "Which document do you need?", "documentType": None})
     response = post(client)
-    assert response.json() == {"reply": "Which document do you need?", "documentType": None, "fields": None, "focus": []}
+    assert response.json() == {
+        "reply": "Which document do you need?", "documentType": None, "fields": None, "focus": [], "documentId": None,
+    }
     assert fake_ai.calls[0]["response_format"] is chat.SelectReply
     assert "cloud-service-agreement: Cloud Service Agreement" in fake_ai.calls[0]["messages"][0]["content"]
 
@@ -50,7 +52,9 @@ def test_choosing_a_document_fills_its_fields_in_the_same_turn(client, fake_ai):
         {"reply": "Who is the provider?", "documentType": CSA, "fields": filled, "focus": ["party1"]},
     ]
     response = post(client)
-    assert response.json() == {"reply": "Who is the provider?", "documentType": CSA, "fields": filled, "focus": ["party1"]}
+    assert response.json() == {
+        "reply": "Who is the provider?", "documentType": CSA, "fields": filled, "focus": ["party1"], "documentId": 1,
+    }
     second = fake_ai.calls[1]
     assert "complete a Cloud Service Agreement" in second["messages"][0]["content"]
     assert second["messages"][1:] == USER
@@ -96,3 +100,11 @@ def test_every_document_has_a_template_and_two_parties():
     for doc in chat.DOCUMENTS.values():
         assert Path(REPO_ROOT, "templates", doc["template"]).is_file()
         assert len(doc["parties"]) == 2
+
+
+def test_rejects_oversized_requests(client, fake_ai):
+    long_message = [{"role": "user", "content": "x" * 10_001}]
+    assert client.post("/api/chat", json={"messages": long_message}).status_code == 422
+    many_messages = [{"role": "user", "content": "hi"}] * 201
+    assert client.post("/api/chat", json={"messages": many_messages}).status_code == 422
+    assert fake_ai.calls == []

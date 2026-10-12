@@ -51,7 +51,7 @@ export function GenericPreview({ doc, data, focus }: Props) {
 
       <footer className="border-t border-zinc-200 pt-4 text-xs text-zinc-600">
         {attribution(doc.name)}{" "}
-        <a href="https://creativecommons.org/licenses/by/4.0/" className="text-indigo-700 underline" target="_blank" rel="noreferrer">
+        <a href="https://creativecommons.org/licenses/by/4.0/" className="text-primary underline" target="_blank" rel="noreferrer">
           License
         </a>
       </footer>
@@ -66,7 +66,7 @@ function Segments({ doc, segments, focus }: { doc: GenericDocument; segments: Ge
         return segment.bold ? <strong key={i}>{segment.text}</strong> : segment.text;
       case "link":
         return (
-          <a key={i} href={segment.href} className="text-indigo-700 underline" target="_blank" rel="noreferrer">
+          <a key={i} href={segment.href} className="text-primary underline" target="_blank" rel="noreferrer">
             {segment.text}
           </a>
         );

@@ -2,7 +2,7 @@ import { PARTY_FOCUS_KEYS } from "@/lib/documents";
 import type { SignatureRow, Value } from "@/lib/nda";
 
 /** Accent-yellow highlight for the part of the document the AI is asking about. */
-export const FOCUS_CLASS = "rounded bg-[#ecad0a]/25 ring-2 ring-[#ecad0a]";
+export const FOCUS_CLASS = "rounded bg-accent/25 ring-2 ring-accent";
 
 export const focusClass = (focus: string[], key: string | undefined) =>
   key !== undefined && focus.includes(key) ? FOCUS_CLASS : "";

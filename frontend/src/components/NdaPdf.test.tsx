@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { describe, expect, it } from "vitest";
+import { DISCLAIMER } from "@/lib/documents";
 import { defaultNdaData, type NdaData } from "@/lib/nda";
 import { parseMndaTemplate } from "@/lib/template";
 import { NdaPdf } from "./NdaPdf";
@@ -36,6 +37,11 @@ describe("NdaPdf", () => {
     expect(text).toContain("Oğulcan Özer");
     expect(text).toContain("Özer Şirketi A.Ş.");
     expect(text).toContain("CC BY 4.0");
+  });
+
+  it("puts the draft disclaimer at the foot of every page", () => {
+    const { pages, text } = inspect(<NdaPdf template={template} data={data} />);
+    expect(text.split(DISCLAIMER).length - 1).toBe(pages);
   });
 
   it("renders a valid PDF that embeds the Unicode font instead of the built-in Times", async () => {

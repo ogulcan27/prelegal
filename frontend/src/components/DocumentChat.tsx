@@ -5,12 +5,16 @@ import { GREETING, sendChat, type ChatMessage, type ChatResponse, type DocumentS
 
 type Props = {
   document: DocumentState;
+  /** The saved document this chat continues, or null for a new one. */
+  documentId: number | null;
+  /** The saved conversation when reopening a document. */
+  initialMessages?: ChatMessage[];
   onReply: (response: ChatResponse) => void;
 };
 
 /** Freeform chat with the AI, which picks the document and fills in its fields from the conversation. */
-export function DocumentChat({ document, onReply }: Props) {
-  const [messages, setMessages] = useState<ChatMessage[]>([GREETING]);
+export function DocumentChat({ document, documentId, initialMessages = [GREETING], onReply }: Props) {
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +36,7 @@ export function DocumentChat({ document, onReply }: Props) {
     setBusy(true);
     setError(null);
     try {
-      const response = await sendChat(conversation, document);
+      const response = await sendChat(conversation, document, documentId);
       setMessages([...conversation, { role: "assistant", content: response.reply }]);
       onReply(response);
     } catch (err) {
@@ -51,15 +55,20 @@ export function DocumentChat({ document, onReply }: Props) {
         {messages.map((message, index) => (
           <li key={index} className={message.role === "user" ? "flex justify-end" : "flex justify-start"}>
             <p
-              className={`max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-sm ${
-                message.role === "user" ? "bg-[#209dd7] text-white" : "bg-zinc-100 text-zinc-900"
+              className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${
+                message.role === "user" ? "rounded-br-sm bg-primary text-white" : "rounded-bl-sm bg-zinc-100 text-zinc-900"
               }`}
             >
               {message.content}
             </p>
           </li>
         ))}
-        {busy && <li className="text-sm text-[#888888]">Assistant is thinking…</li>}
+        {busy && (
+          <li className="flex items-center gap-2 text-sm text-muted">
+            <span className="size-2 animate-pulse rounded-full bg-primary" />
+            Assistant is thinking…
+          </li>
+        )}
       </ol>
       {error && (
         <p role="alert" className="mt-2 text-xs text-red-600">
@@ -81,12 +90,12 @@ export function DocumentChat({ document, onReply }: Props) {
               e.currentTarget.form?.requestSubmit();
             }
           }}
-          className="field-sizing-content max-h-60 min-h-28 w-full resize-none rounded-md border border-zinc-300 bg-white px-3 py-2 text-base text-zinc-900 shadow-sm focus:border-[#209dd7] focus:outline-none focus:ring-1 focus:ring-[#209dd7]"
+          className="field-sizing-content max-h-60 min-h-28 w-full resize-none rounded-md border border-zinc-300 bg-white px-3 py-2 text-base text-zinc-900 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
         />
         <button
           type="submit"
           disabled={busy || !input.trim()}
-          className="self-end rounded-md bg-[#753991] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 disabled:opacity-50"
+          className="self-end rounded-md bg-secondary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 disabled:opacity-50"
         >
           Send
         </button>

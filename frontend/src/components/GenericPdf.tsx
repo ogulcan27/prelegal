@@ -2,18 +2,13 @@ import { Document, Link, Page, Text, View } from "@react-pdf/renderer";
 import { attribution, coverIntro, GENERIC_SIGNING_STATEMENT, type GenericData, type GenericDocument } from "@/lib/documents";
 import type { GenericSegment } from "@/lib/generic-template";
 import { signatureRows, valueOr } from "@/lib/nda";
-import { PdfSignatureTable, styles } from "./pdf-parts";
+import { PdfFooter, PdfSignatureTable, styles } from "./pdf-parts";
 
 type Props = { doc: GenericDocument; data: GenericData };
 
 /** PDF rendering of any non-NDA document; mirrors GenericPreview. Call registerPdfFonts first. */
 export function GenericPdf({ doc, data }: Props) {
-  const footer = (
-    <View style={styles.footer} fixed>
-      <Text style={{ flex: 1 }}>{attribution(doc.name)}</Text>
-      <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
-    </View>
-  );
+  const footer = <PdfFooter attribution={attribution(doc.name)} />;
 
   return (
     <Document title={doc.name} author="prelegal">

@@ -9,20 +9,13 @@ import {
   type NdaData,
 } from "@/lib/nda";
 import { refValue, type MndaTemplate, type Segment } from "@/lib/template";
-import { PdfSignatureTable, styles } from "./pdf-parts";
+import { PdfFooter, PdfSignatureTable, styles } from "./pdf-parts";
 
 type Props = { template: MndaTemplate; data: NdaData };
 
 /** PDF rendering of the completed Mutual NDA; mirrors NdaPreview. Call registerPdfFonts first. */
 export function NdaPdf({ template, data }: Props) {
-  const footer = (
-    <View style={styles.footer} fixed>
-      <Text style={{ flex: 1 }}>
-        <Segments segments={template.attribution} data={data} />
-      </Text>
-      <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
-    </View>
-  );
+  const footer = <PdfFooter attribution={<Segments segments={template.attribution} data={data} />} />;
 
   return (
     <Document title={NDA_TITLE} author="prelegal">

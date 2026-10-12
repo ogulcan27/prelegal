@@ -1,7 +1,9 @@
 import { Font, StyleSheet, Text, View } from "@react-pdf/renderer";
+import type { ReactNode } from "react";
+import { DISCLAIMER } from "@/lib/documents";
 import type { SignatureRow } from "@/lib/nda";
 
-/** Font, styles and the signature table shared by NdaPdf and GenericPdf. */
+/** Font, styles, page footer and the signature table shared by NdaPdf and GenericPdf. */
 
 const FONT_FAMILY = "Noto Serif";
 
@@ -26,14 +28,28 @@ export const styles = StyleSheet.create({
   heading: { fontWeight: "bold", marginTop: 10, marginBottom: 2 },
   paragraph: { marginBottom: 6 },
   bold: { fontWeight: "bold" },
-  link: { color: "#3730a3" },
+  link: { color: "#209dd7" },
   table: { marginTop: 8, borderTopWidth: 1, borderLeftWidth: 1, borderColor: "#a1a1aa" },
   row: { flexDirection: "row" },
   cell: { flex: 1, minHeight: 24, padding: 5, borderRightWidth: 1, borderBottomWidth: 1, borderColor: "#a1a1aa", textAlign: "center" },
   signCell: { minHeight: 40 },
   labelCell: { flex: 0.8, textAlign: "left", fontWeight: "bold" },
-  footer: { position: "absolute", bottom: 28, left: 56, right: 56, fontSize: 8, color: "#52525b", flexDirection: "row", justifyContent: "space-between" },
+  footer: { position: "absolute", bottom: 24, left: 56, right: 56, fontSize: 8, color: "#52525b" },
+  disclaimer: { fontWeight: "bold", marginBottom: 2 },
 });
+
+/** Repeated on every page: the draft disclaimer, then `attribution` and the page number. */
+export function PdfFooter({ attribution }: { attribution: ReactNode }) {
+  return (
+    <View style={styles.footer} fixed>
+      <Text style={styles.disclaimer}>{DISCLAIMER}</Text>
+      <View style={styles.row}>
+        <Text style={{ flex: 1 }}>{attribution}</Text>
+        <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
+      </View>
+    </View>
+  );
+}
 
 /** Party details and signature lines, one column per party; mirrors the HTML SignatureTable. */
 export function PdfSignatureTable({ headers, rows }: { headers: readonly string[]; rows: SignatureRow[] }) {

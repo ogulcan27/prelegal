@@ -27,11 +27,19 @@ def db_path():
 
 
 @pytest.fixture
-def client():
+def anon_client():
+    """Client with a fresh database and no session."""
     from prelegal_backend.main import app
 
     with TestClient(app) as client:
         yield client
+
+
+@pytest.fixture
+def client(anon_client):
+    """Client signed in as a new user."""
+    anon_client.post("/api/auth/signup", json={"email": "owner@example.com", "password": "password123"})
+    return anon_client
 
 
 @pytest.fixture

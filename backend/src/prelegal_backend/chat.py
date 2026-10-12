@@ -47,13 +47,16 @@ class GenericData(BaseModel):
 
 class ChatMessage(BaseModel):
     role: Literal["user", "assistant"]
-    content: str
+    content: str = Field(max_length=10_000)
 
 
 class ChatRequest(BaseModel):
-    messages: list[ChatMessage]
+    """`documentId` is the saved document this chat continues; null until the first save."""
+
+    messages: list[ChatMessage] = Field(max_length=200)
     documentType: DocumentId | None = None
     fields: NdaData | GenericData | None = None
+    documentId: int | None = None
 
 
 class ChatResponse(BaseModel):
@@ -61,6 +64,7 @@ class ChatResponse(BaseModel):
     documentType: DocumentId | None
     fields: NdaData | GenericData | None
     focus: list[str]
+    documentId: int | None = None
 
 
 class SelectReply(BaseModel):

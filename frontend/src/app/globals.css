@@ -5,6 +5,17 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Brand colors: bg-primary, text-navy, ring-accent, ... */
+@theme {
+  --color-accent: #ecad0a;
+  --color-primary: #209dd7;
+  --color-secondary: #753991;
+  --color-navy: #032147;
+  --color-muted: #888888;
+  /* Height of the signed-in app header; the editor fills the rest of the screen. */
+  --spacing-header: 4rem;
+}
+
 body {
   background: var(--color-zinc-50);
   color: var(--color-zinc-900);

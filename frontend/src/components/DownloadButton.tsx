@@ -36,7 +36,7 @@ export function DownloadButton({ fileName, renderPdf }: Props) {
         type="button"
         onClick={download}
         disabled={busy}
-        className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:cursor-wait disabled:opacity-60"
+        className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
       >
         {busy ? "Generating PDF…" : "Download PDF"}
       </button>

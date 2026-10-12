@@ -4,7 +4,7 @@
 
 ## Overview
 
-prelegal lets users draft legal agreements from the [Common Paper](https://github.com/CommonPaper) templates in `templates/` (listed in `catalog.json`). The current build has a placeholder login (any email and password let you in) followed by the document creator: you tell an AI assistant which agreement you need (any template in `catalog.json`), it asks for the details and fills in the live preview, highlighting the part it is asking about, and you download a PDF.
+prelegal lets users draft legal agreements from the [Common Paper](https://github.com/CommonPaper) templates in `templates/` (listed in `catalog.json`). You create an account and sign in. In the editor you tell an AI assistant which agreement you need (any template in `catalog.json`); it asks for the details and fills in the live preview, highlighting the part it is asking about, and you download a PDF. Each document is saved after every AI reply, and **My documents** lists them so you can reopen one and continue. Every document is a draft and must be reviewed by a lawyer; the app and each PDF page say so.
 
 ## Running with Docker
 
@@ -16,7 +16,7 @@ Requires Docker. The app runs at http://localhost:8000.
 | Linux | `scripts/start-linux.sh` | `scripts/stop-linux.sh` |
 | Windows | `scripts/start-windows.ps1` | `scripts/stop-windows.ps1` |
 
-Start builds the image and runs a fresh container, passing `.env` (format `KEY=value`, no spaces around `=`) if it exists. The AI chat needs `OPENROUTER_API_KEY` in `.env` (free models: 50 requests per day). The SQLite database is recreated on every start.
+Start builds the image and runs a fresh container, passing `.env` (format `KEY=value`, no spaces around `=`) if it exists. The AI chat needs `OPENROUTER_API_KEY` in `.env` (free models: 50 requests per day). The SQLite database is recreated on every start, so accounts and saved documents last only until the next restart.
 
 ## Development
 
@@ -27,7 +27,7 @@ Start builds the image and runs a fresh container, passing `.env` (format `KEY=v
 
 The backend serves `frontend/out`, so run `npm run build` in `frontend/` before starting it. The frontend needs Node.js 22.12+, 24 or 26 and reads `templates/` at build time, so build it from a full checkout.
 
-API: `GET /api/health`, `POST /api/chat`.
+API: `GET /api/health`; `POST /api/auth/signup`, `/signin`, `/signout`, `GET /api/auth/me`; `POST /api/chat` (saves the document); `GET /api/documents`, `GET /api/documents/{id}`. All but health and sign up/in need the session cookie.
 
 ## Templates
 

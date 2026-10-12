@@ -1,12 +1,9 @@
 // @vitest-environment happy-dom
-import { act } from "react";
-import { createRoot } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { GREETING } from "@/lib/chat";
+import { describe, expect, it, vi } from "vitest";
+import { GREETING, type ChatMessage } from "@/lib/chat";
 import { defaultNdaData } from "@/lib/nda";
+import { json, mount, typeAndSend } from "@/test-utils";
 import { DocumentChat } from "./DocumentChat";
-
-(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const current = { documentType: "mutual-nda", fields: defaultNdaData };
 const reply = {
@@ -14,49 +11,32 @@ const reply = {
   documentType: "mutual-nda",
   fields: { ...defaultNdaData, governingLaw: "Delaware" },
   focus: ["jurisdiction"],
+  documentId: 7,
 };
 const onReply = vi.fn();
 const fetchMock = vi.fn();
-let container: HTMLDivElement;
 
-beforeEach(() => {
+function render(initialMessages?: ChatMessage[]) {
   vi.stubGlobal("fetch", fetchMock);
-  container = document.createElement("div");
-  document.body.append(container);
-  act(() => createRoot(container).render(<DocumentChat document={current} onReply={onReply} />));
-});
-
-afterEach(() => {
-  container.remove();
-  vi.unstubAllGlobals();
-  fetchMock.mockReset();
-  onReply.mockReset();
-});
-
-const bubbles = () => [...container.querySelectorAll("li")].map((li) => li.textContent);
-
-const submitForm = () =>
-  container.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-
-/** Types `text` into the message box, then sends it (by default, by submitting the form). */
-async function sendMessage(text: string, send: (textarea: HTMLTextAreaElement) => void = submitForm) {
-  const textarea = container.querySelector("textarea")!;
-  const setValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!;
-  act(() => {
-    setValue.call(textarea, text);
-    textarea.dispatchEvent(new Event("input", { bubbles: true }));
-  });
-  await act(async () => send(textarea));
+  return mount(<DocumentChat document={current} documentId={7} initialMessages={initialMessages} onReply={onReply} />);
 }
 
+const bubbles = (container: HTMLElement) => [...container.querySelectorAll("li")].map((li) => li.textContent);
+
 describe("DocumentChat", () => {
-  it("starts with the greeting", () => {
-    expect(bubbles()).toEqual([GREETING.content]);
+  it("starts with the greeting", async () => {
+    expect(bubbles(await render())).toEqual([GREETING.content]);
   });
 
-  it("sends the conversation and current document, then shows the reply and passes it on", async () => {
-    fetchMock.mockResolvedValue(new Response(JSON.stringify(reply)));
-    await sendMessage("Delaware law");
+  it("continues a saved conversation", async () => {
+    const saved: ChatMessage[] = [GREETING, { role: "user", content: "An NDA" }, { role: "assistant", content: "Sure." }];
+    expect(bubbles(await render(saved))).toEqual([GREETING.content, "An NDA", "Sure."]);
+  });
+
+  it("sends the conversation, current document and its id, then shows the reply and passes it on", async () => {
+    fetchMock.mockResolvedValue(json(reply));
+    const container = await render();
+    await typeAndSend(container, "Delaware law");
 
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("/api/chat");
@@ -64,19 +44,21 @@ describe("DocumentChat", () => {
       messages: [GREETING, { role: "user", content: "Delaware law" }],
       documentType: "mutual-nda",
       fields: defaultNdaData,
+      documentId: 7,
     });
-    expect(bubbles()).toEqual([GREETING.content, "Delaware law", "Which courts?"]);
+    expect(bubbles(container)).toEqual([GREETING.content, "Delaware law", "Which courts?"]);
     expect(onReply).toHaveBeenCalledWith(reply);
   });
 
   it("sends on Enter but not on Shift+Enter", async () => {
-    fetchMock.mockResolvedValue(new Response(JSON.stringify(reply)));
-    await sendMessage("Delaware law", (textarea) =>
+    fetchMock.mockResolvedValue(json(reply));
+    const container = await render();
+    await typeAndSend(container, "Delaware law", (textarea) =>
       textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", shiftKey: true, bubbles: true })),
     );
     expect(fetchMock).not.toHaveBeenCalled();
 
-    await sendMessage("Delaware law", (textarea) =>
+    await typeAndSend(container, "Delaware law", (textarea) =>
       textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })),
     );
     expect(fetchMock).toHaveBeenCalledOnce();
@@ -85,10 +67,11 @@ describe("DocumentChat", () => {
   it("keeps the user's text and shows an error when the request fails", async () => {
     fetchMock.mockResolvedValue(new Response("boom", { status: 500 }));
     vi.spyOn(console, "error").mockImplementation(() => {});
-    await sendMessage("Delaware law");
+    const container = await render();
+    await typeAndSend(container, "Delaware law");
 
     expect(container.querySelector('[role="alert"]')?.textContent).toMatch(/could not reply/);
-    expect(bubbles()).toEqual([GREETING.content]);
+    expect(bubbles(container)).toEqual([GREETING.content]);
     expect(container.querySelector("textarea")!.value).toBe("Delaware law");
     expect(onReply).not.toHaveBeenCalled();
   });
